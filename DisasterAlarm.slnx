@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="DisasterAlarm.api/DisasterAlarm.api.csproj" />
+  <Project Path="DisasterAlarm.service/DisasterAlarm.service.csproj" />
+  <Project Path="DisasterAlarm.context/DisasterAlarm.context.csproj" />
+</Solution>
