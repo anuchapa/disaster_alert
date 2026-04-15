@@ -252,7 +252,7 @@ public class AppserviceIpm : AppService
 
         }
 
-        // string reciever = "idmzphantom@gmail.com";
+        // string reciever = "reciever";
         // string subject = "Disaster alert";
         // string plainTextContent = "alert text test from sendgrid";
 
