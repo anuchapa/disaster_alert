@@ -5,7 +5,7 @@
 
 # dotenv files
 .env
-DisasterAlarm.api/appsettings.Development.json
+DisasterAlert.api/appsettings.Development.json
 note
 
 # User-specific files
