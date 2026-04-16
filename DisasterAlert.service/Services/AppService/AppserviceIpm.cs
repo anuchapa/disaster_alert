@@ -327,7 +327,7 @@ public class AppserviceIpm : AppService
             default:
                 break;
         }
-        string htmlTemplate = File.ReadAllText("../DisasterAlert.service/Template/Html/AlertTempalte.html");
+        string htmlTemplate = File.ReadAllText("../DisasterAlert.api/Template/Html/AlertTempalte.html");
         var now = DateTime.UtcNow;
         string htmlContent = htmlTemplate
             .Replace("{{regionId}}", risk.RegionId)
