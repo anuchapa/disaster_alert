@@ -251,6 +251,10 @@ public class AppserviceIpm : AppService
         }
         var riskReportsCacheCount = riskReportsCache.Count();
         var riskReportsCacheDict = riskReportsCache.Where(r => r.AlertTrigger).GroupBy(r => r.RegionId).ToDictionary(r => r.Key, r => r.ToArray());
+        if (riskReportsCacheDict.Any())
+        {
+            return ServiceResponse<bool>.Fail("There is no alert required for submission.");
+        }
         var regionIds = riskReportsCacheDict.Keys.ToArray();
         // // if (riskReportsCache == null)
         // // {

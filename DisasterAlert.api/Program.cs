@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var AzureApplicationInsight = builder.Configuration.GetConnectionString("AzureApplicationInsight");
+builder.Services.AddApplicationInsightsTelemetry(options => options.ConnectionString=AzureApplicationInsight);
+
 builder.Services.Configure<ExternalApiSetting>(builder.Configuration.GetSection("ExternalApi"));
 builder.Services.Configure<TwilioServiceSetting>(builder.Configuration.GetSection("TwilioApiKey"));
 
