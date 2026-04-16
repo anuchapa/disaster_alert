@@ -45,9 +45,18 @@ namespace DisasterAlert.api.Controllers
         [HttpPost("alerts/send")]
         public async Task<IActionResult> SendAlert()
         {
-            var resp = await _service.SendEmail();
-            // if(!resp.Success)
-            //     return StatusCode(500,resp);
+            var resp = await _service.SendAlert();
+            if(!resp.Success)
+                return StatusCode(500,resp);
+            return Ok(resp);
+        }
+
+        [HttpGet("alerts")]
+        public async Task<IActionResult> GetAlerts()
+        {
+            var resp = await _service.GetRecentAlerts();
+            if(!resp.Success)
+                return StatusCode(500,resp);
             return Ok(resp);
         }
     }

@@ -11,6 +11,9 @@ public class OpenWeatherResponse
     public int TimezoneOffset { get; set; }
     public CurrentWeather Current { get; set; } = new();
     //public List<MinutelyData> Minutely { get; set; } = new();
+
+    public string ErrorMessage = string.Empty;
+    public bool Success = false;
 }
 
 public class CurrentWeather
@@ -43,7 +46,7 @@ public class WeatherInfo
 public class Rain1H
 {
     [JsonPropertyName("1h")]
-    public double H1 {get; set;}
+    public double H1 { get; set; }
 }
 
 // public class MinutelyData

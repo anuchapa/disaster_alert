@@ -136,6 +136,7 @@ public class AppserviceIpm : AppService
 
             _context.RegionDisasters.UpdateRange(regionDisasterMap.Values);
             await _context.SaveChangesAsync();
+            await _cache.DeletetAsync("riskReport");
             return ServiceResponse<bool>.Ok(true, "Update Sucessfully");
         }
         catch (Exception ex)
@@ -171,7 +172,30 @@ public class AppserviceIpm : AppService
             });
         });
 
-        var weatherResultDict = weatherResult.ToDictionary(r => r.RegionId);
+        List<string> errorMessages = [];
+        var weatherResultArray = weatherResult.ToArray();
+        foreach (var item in weatherResultArray)
+        {
+            if (!item.EarthquakeRespones.Success)
+            {
+                errorMessages.Add($"RegionId {item.RegionId} : {item.ErrorMessage} ");
+            }
+
+            if (!item.WeatherRespones.Success)
+            {
+                errorMessages.Add($"RegionId {item.RegionId} : {item.ErrorMessage} ");
+            }
+        }
+
+        if (errorMessages.Any())
+        {
+            var error = ServiceResponse<RiskReportResponse[]>.Fail("External api has errors.");
+            error.Errors.AddRange(errorMessages);
+            return error;
+        }
+
+
+        var weatherResultDict = weatherResultArray.ToDictionary(r => r.RegionId);
 
         var riskReports = await _context.RegionDisasters.Where(r => r.Threshold != null).Select(r =>
              new RiskReportResponse
@@ -218,24 +242,26 @@ public class AppserviceIpm : AppService
 
     }
 
-    public async Task<ServiceResponse<bool>> SendEmail()
+    public async Task<ServiceResponse<bool>> SendAlert()
     {
-        var riskReportsCache = await _cache.GetAsync<RiskReportResponse[]>("riskReport");
-
-        if(riskReportsCache ==  null)
+        var riskReportsCache = await _cache.GetAsync<List<RiskReportResponse>>("riskReport");
+        var riskReportsCacheCount = riskReportsCache.Count();
+        if (riskReportsCache == null)
         {
             return ServiceResponse<bool>.Fail("There is no alert required for submission.");
         }
         var riskReportsCacheDict = riskReportsCache.Where(r => r.AlertTrigger).GroupBy(r => r.RegionId).ToDictionary(r => r.Key, r => r.ToArray());
         var regionIds = riskReportsCacheDict.Keys.ToArray();
-        var regionMap = _context.Regions.Where(r => regionIds.Contains(r.RegionId)).ToDictionary(r => r.Id);
         // // if (riskReportsCache == null)
         // // {
         // //    return 
         // // }
 
+
+        var regionMap = _context.Regions.Where(r => regionIds.Contains(r.RegionId)).ToDictionary(r => r.Id);
         var users = _context.Users.Include(u => u.userSubscriptions).ToArray();
         string subject = "Disaster alert";
+        List<RiskAlert> riskAlerts = [];
         foreach (var user in users)
         {
             string reciever = user.Email;
@@ -249,14 +275,25 @@ public class AppserviceIpm : AppService
                         {
                             var alertContent = CreateAlertTemplate(risk);
                             var resp = await _messenger.SendEmail(reciever, subject, alertContent.Text, alertContent.Html);
+                            riskAlerts.Add(alertContent.Alert);
+                            if (resp.IsSuccessStatusCode)
+                            {
+                                alertContent.Alert.SuccessStatus = true;
+                                riskReportsCache.Remove(risk);
+                            }
                         }
                     }
                 }
 
             }
+            _context.AddRange(riskAlerts);
 
         }
-
+        if (riskReportsCacheCount != riskReportsCache.Count())
+        {
+            _ = _cache.SetAsync("riskReport", riskReportsCache);
+        }
+        await _context.SaveChangesAsync();
         // string reciever = "reciever";
         // string subject = "Disaster alert";
         // string plainTextContent = "alert text test from sendgrid";
@@ -290,15 +327,46 @@ public class AppserviceIpm : AppService
             default:
                 break;
         }
-        string htmlTemplate = File.ReadAllText("DisasterAlert.service/Template/Html/AlertTempalte.html");
+        string htmlTemplate = File.ReadAllText("../DisasterAlert.service/Template/Html/AlertTempalte.html");
+        var now = DateTime.UtcNow;
         string htmlContent = htmlTemplate
-            .Replace("{{RegionId}}", risk.RegionId)
-            .Replace("{{DisasterType}}", risk.DisasterType)
-            .Replace("{{RiskLevel}}", risk.RiskLevel)
-            .Replace("{{AlertMessage}}", alertMessage)
-            .Replace("{{Timestamp}}", DateTime.Now.ToString("f"));
-        var alertContent = new AlertContentModel { Text = alertMessage, Html = htmlContent };
+            .Replace("{{regionId}}", risk.RegionId)
+            .Replace("{{disasterType}}", risk.DisasterType)
+            .Replace("{{riskLevel}}", risk.RiskLevel)
+            .Replace("{{alertMessage}}", alertMessage)
+            .Replace("{{timestamp}}", now.ToString("yyyy-MM-dd"));
+        var alert = new RiskAlert
+        {
+            RegionId = risk.RegionId,
+            DisasterType = risk.DisasterType,
+            AlertMessage = alertMessage,
+            RiskLevel = risk.RiskLevel,
+            Timestamp = now
+        };
+        var alertContent = new AlertContentModel { Alert = alert, Text = alertMessage, Html = htmlContent };
         return alertContent;
     }
-    public async Task DisasterRisksAsync() { }
+    public async Task<ServiceResponse<RecentAlertResponse[]>> GetRecentAlerts()
+    {
+        var r = await _context.RiskAlerts.GroupBy(r => r.RegionId).Select(r => r.FirstOrDefault()).ToArrayAsync();
+        var recentAlert = await _context.RiskAlerts.GroupBy(r => r.RegionId).Select(
+            r => r.OrderByDescending(r => r.Timestamp)
+            .Select(r => new RecentAlertResponse
+            {
+                RegionId = r.RegionId,
+                DisasterType = r.DisasterType,
+                AlertMessage = r.AlertMessage,
+                Timestamp = r.Timestamp.ToString("yyyy-MM-dd"),
+                RiskLevel = r.RiskLevel,
+                SuccessStatus = r.SuccessStatus
+            }).FirstOrDefault()).ToArrayAsync();
+
+        if (recentAlert == null && !recentAlert.Any())
+        {
+            return ServiceResponse<RecentAlertResponse[]>.Fail("์No alert found.");
+        }
+
+        return ServiceResponse<RecentAlertResponse[]>.Ok(recentAlert);
+
+    }
 }

@@ -26,4 +26,10 @@ public class RedisService : ICacheService
         if (value.IsNull)  return default;
         return JsonSerializer.Deserialize<T>((string)value!);
     }
+
+    public async Task<bool> DeletetAsync(string key)
+    {
+        var value = await _db.KeyDeleteAsync(key);
+        return value;
+    }
 }

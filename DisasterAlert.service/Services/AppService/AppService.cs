@@ -10,6 +10,6 @@ public interface AppService
     Task<ServiceResponse<bool>> CreateRegionAsync(CreateRegionRequest[] request);
     Task<ServiceResponse<bool>> AlertSettingsAsync(AlertSettingRequest[] request);
     Task<ServiceResponse<RiskReportResponse[]>> CreateRiskReportAsync();
-    Task<ServiceResponse<bool>> SendEmail();
-    Task DisasterRisksAsync();
+    Task<ServiceResponse<bool>> SendAlert();
+    Task<ServiceResponse<RecentAlertResponse[]>> GetRecentAlerts();
 }

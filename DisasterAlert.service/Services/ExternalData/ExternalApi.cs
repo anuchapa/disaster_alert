@@ -12,13 +12,13 @@ public class ExternalApi : ExternalData
 {
     private readonly HttpClient _httpClient;
     private readonly ExternalApiSetting _setting;
-    public ExternalApi(HttpClient httpClient , IOptions<ExternalApiSetting> setting)
+    public ExternalApi(HttpClient httpClient, IOptions<ExternalApiSetting> setting)
     {
         _httpClient = httpClient;
         _setting = setting.Value;
     }
 
-    public async Task<OpenWeatherResponse?> GetCurrentWeatherAsync(double lat, double lon)
+    public async Task<OpenWeatherResponse> GetCurrentWeatherAsync(double lat, double lon)
     {
         UriBuilder uriBuilder = new UriBuilder(_setting.OpenWeatherUrl);
         var paramValues = HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -33,11 +33,26 @@ public class ExternalApi : ExternalData
         if (resp.IsSuccessStatusCode)
         {
             var data = await resp.Content.ReadFromJsonAsync<OpenWeatherResponse>();
+            if (data == null)
+            {
+                data = new OpenWeatherResponse
+                {
+                    ErrorMessage = "There is no weather data in this area."
+                };
+            }
+            else
+            {
+                data.Success = true;
+            }
             return data;
         }
         else
         {
-            return null;
+            var data = new OpenWeatherResponse
+            {
+                ErrorMessage = "Weather requested is failed."
+            };
+            return data;
         }
     }
 
@@ -50,18 +65,33 @@ public class ExternalApi : ExternalData
         paramValues.Add("format", "geojson");
         paramValues.Add("maxradiuskm", "200");
         var now = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        paramValues.Add("starttime", now );
+        paramValues.Add("starttime", now);
         uriBuilder.Query = paramValues.ToString();
         string url = uriBuilder.ToString();
         HttpResponseMessage resp = await _httpClient.GetAsync(url);
         if (resp.IsSuccessStatusCode)
         {
             var data = await resp.Content.ReadFromJsonAsync<EarthquakeResponse>();
+            if (data == null)
+            {
+                data = new EarthquakeResponse
+                {
+                    ErrorMessage = "There is no earthquake data in this area."
+                };
+            }
+            else
+            {
+                data.Success = true;
+            }
             return data;
         }
         else
         {
-            return null;
+            var data = new EarthquakeResponse
+            {
+                ErrorMessage = "Earthquake requested is failed."
+            };
+            return data;
         }
     }
 }

@@ -8,6 +8,8 @@ public class EarthquakeResponse
     public Metadata Metadata { get; set; } = new();
     public List<Feature> Features { get; set; } = new();
     public List<double> Bbox { get; set; } = new();
+    public string ErrorMessage = string.Empty;
+    public bool Success = false;
 }
 
 public class Metadata
