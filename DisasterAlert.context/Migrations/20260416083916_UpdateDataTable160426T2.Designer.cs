@@ -3,6 +3,7 @@ using System;
 using DisasterAlert.context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DisasterAlert.context.Migrations
 {
     [DbContext(typeof(DisasterAlertContext))]
-    partial class DisasterAlertContextModelSnapshot : ModelSnapshot
+    [Migration("20260416083916_UpdateDataTable160426T2")]
+    partial class UpdateDataTable160426T2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
