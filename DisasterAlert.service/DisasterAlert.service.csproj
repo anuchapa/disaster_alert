@@ -9,8 +9,6 @@
     <Folder Include="Services\CacheService\" />
     <Folder Include="Services\ExternalData\" />
     <Folder Include="Services\MessagingService\" />
-    <Folder Include="Template\" />
-    <Folder Include="Template\Html\" />
   </ItemGroup>
 
   <ItemGroup>

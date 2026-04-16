@@ -245,11 +245,11 @@ public class AppserviceIpm : AppService
     public async Task<ServiceResponse<bool>> SendAlert()
     {
         var riskReportsCache = await _cache.GetAsync<List<RiskReportResponse>>("riskReport");
-        var riskReportsCacheCount = riskReportsCache.Count();
         if (riskReportsCache == null)
         {
             return ServiceResponse<bool>.Fail("There is no alert required for submission.");
         }
+        var riskReportsCacheCount = riskReportsCache.Count();
         var riskReportsCacheDict = riskReportsCache.Where(r => r.AlertTrigger).GroupBy(r => r.RegionId).ToDictionary(r => r.Key, r => r.ToArray());
         var regionIds = riskReportsCacheDict.Keys.ToArray();
         // // if (riskReportsCache == null)
@@ -327,14 +327,14 @@ public class AppserviceIpm : AppService
             default:
                 break;
         }
-        string htmlTemplate = File.ReadAllText("../DisasterAlert.api/Template/Html/AlertTempalte.html");
+        string htmlTemplate = File.ReadAllText("Template/Html/AlertTempalte.html");
         var now = DateTime.UtcNow;
         string htmlContent = htmlTemplate
             .Replace("{{regionId}}", risk.RegionId)
             .Replace("{{disasterType}}", risk.DisasterType)
             .Replace("{{riskLevel}}", risk.RiskLevel)
             .Replace("{{alertMessage}}", alertMessage)
-            .Replace("{{timestamp}}", now.ToString("yyyy-MM-dd"));
+            .Replace("{{timestamp}}", now.ToString("yyyy-MM-dd HH:mm:ss"));
         var alert = new RiskAlert
         {
             RegionId = risk.RegionId,
@@ -356,7 +356,7 @@ public class AppserviceIpm : AppService
                 RegionId = r.RegionId,
                 DisasterType = r.DisasterType,
                 AlertMessage = r.AlertMessage,
-                Timestamp = r.Timestamp.ToString("yyyy-MM-dd"),
+                Timestamp = r.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"),
                 RiskLevel = r.RiskLevel,
                 SuccessStatus = r.SuccessStatus
             }).FirstOrDefault()).ToArrayAsync();

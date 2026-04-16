@@ -16,6 +16,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Template\Html\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+  <ItemGroup>
     <ProjectReference Include="..\DisasterAlert.context\DisasterAlert.context.csproj" />
     <ProjectReference Include="..\DisasterAlert.service\DisasterAlert.service.csproj" />
   </ItemGroup>
