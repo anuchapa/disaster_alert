@@ -24,7 +24,7 @@ var redisConnectionString = builder.Configuration.GetConnectionString("RedisConn
 builder.Services.AddSingleton<ICacheService, RedisService>(c => new RedisService(redisConnectionString));
 
 //Add Depencies.
-builder.Services.AddScoped<IAppService, IAppService>();
+builder.Services.AddScoped<IAppService, AppService>();
 builder.Services.AddScoped<IMessagingService, TwilioService>();
 builder.Services.AddHttpClient<IExternalData, ExternalApi>();
 
