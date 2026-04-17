@@ -4,18 +4,22 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Web;
 using DisasterAlert.service.Dtos.Response;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace DisasterAlert.service.Services;
 
-public class ExternalApi : ExternalData
+public class ExternalApi : IExternalData
 {
     private readonly HttpClient _httpClient;
     private readonly ExternalApiSetting _setting;
-    public ExternalApi(HttpClient httpClient, IOptions<ExternalApiSetting> setting)
+    private readonly ILogger<ExternalApi> _logger;
+
+    public ExternalApi(HttpClient httpClient, IOptions<ExternalApiSetting> setting, ILogger<ExternalApi> logger)
     {
         _httpClient = httpClient;
         _setting = setting.Value;
+        _logger = logger;
     }
 
     public async Task<OpenWeatherResponse> GetCurrentWeatherAsync(double lat, double lon)
@@ -39,10 +43,12 @@ public class ExternalApi : ExternalData
                 {
                     ErrorMessage = "There is no weather data in this area."
                 };
+                _logger.LogInformation("url:{Url}\nstatus:{Status}\nmessage: content is emtry.", url, resp.StatusCode);
             }
             else
             {
                 data.Success = true;
+                _logger.LogInformation("url:{Url}\nstatus:{Status}\nmessage:OpenWeatherApi request is succesed.", url, resp.StatusCode);
             }
             return data;
         }
@@ -52,6 +58,7 @@ public class ExternalApi : ExternalData
             {
                 ErrorMessage = "Weather requested is failed."
             };
+            _logger.LogInformation("url:{Url}\nstatus:{Status}\nmessage: OpenWeatherApi request is failed.", url, resp.StatusCode);
             return data;
         }
     }
@@ -78,11 +85,13 @@ public class ExternalApi : ExternalData
                 {
                     ErrorMessage = "There is no earthquake data in this area."
                 };
+                _logger.LogInformation("url:{Url}\nstatus:{Status}\nmessage: content is emtry.", url, resp.StatusCode);
             }
             else
             {
                 data.Success = true;
             }
+            _logger.LogInformation("url:{Url}\nstatus:{Status}\nmessage:Earthquake request is succesed.", url, resp.StatusCode);
             return data;
         }
         else
@@ -91,6 +100,7 @@ public class ExternalApi : ExternalData
             {
                 ErrorMessage = "Earthquake requested is failed."
             };
+            _logger.LogInformation("url:{Url}\nstatus:{Status}\nmessage: Earthquake request is failed.", url, resp.StatusCode);
             return data;
         }
     }

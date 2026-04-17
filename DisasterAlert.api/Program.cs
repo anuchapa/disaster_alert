@@ -3,6 +3,7 @@ using DisasterAlert.service.Services;
 using DisasterAlert.service.Services.CacheService;
 using DisasterAlert.service.Services.MessagingService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,9 +24,9 @@ var redisConnectionString = builder.Configuration.GetConnectionString("RedisConn
 builder.Services.AddSingleton<ICacheService, RedisService>(c => new RedisService(redisConnectionString));
 
 //Add Depencies.
-builder.Services.AddScoped<AppService, AppserviceIpm>();
+builder.Services.AddScoped<IAppService, IAppService>();
 builder.Services.AddScoped<IMessagingService, TwilioService>();
-builder.Services.AddHttpClient<ExternalData, ExternalApi>();
+builder.Services.AddHttpClient<IExternalData, ExternalApi>();
 
 // Add services to the container.
 
@@ -35,7 +36,13 @@ builder.Services.AddControllers();
 
 //Add Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>{
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "DisasterAlert.api", 
+        Version = "v1.0"
+    });}
+);
 
 var app = builder.Build();
 
