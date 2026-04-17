@@ -9,8 +9,8 @@ namespace DisasterAlert.api.Controllers
     [ApiController]
     public class AppController : ControllerBase
     {
-        private readonly AppService _service;
-        public AppController(AppService service)
+        private readonly IAppService _service;
+        public AppController(IAppService service)
         {
             _service = service;
         }
