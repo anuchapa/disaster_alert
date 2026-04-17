@@ -264,8 +264,12 @@ public class AppService : IAppService
 
         var regionMap = _context.Regions.Where(r => regionIds.Contains(r.RegionId)).ToDictionary(r => r.Id);
         var users = _context.Users.Include(u => u.userSubscriptions).ToArray();
-        if(users == null || !users.Any())
-            return ServiceResponse<bool>.Fail("Empty reciever.");
+        if (users == null || !users.Any())
+            return ServiceResponse<bool>.Fail("Empty user.");
+        var userSub = users.SelectMany(u => u.userSubscriptions).ToArray();
+        Console.WriteLine(userSub.Any());
+        if (userSub == null || !userSub.Any())
+            return ServiceResponse<bool>.Fail("Don't have any subscription.");
         string subject = "Disaster alert";
         List<RiskAlert> riskAlerts = [];
         foreach (var user in users)
