@@ -251,7 +251,7 @@ public class AppService : IAppService
         }
         var riskReportsCacheCount = riskReportsCache.Count();
         var riskReportsCacheDict = riskReportsCache.Where(r => r.AlertTrigger).GroupBy(r => r.RegionId).ToDictionary(r => r.Key, r => r.ToArray());
-        if (riskReportsCacheDict.Any())
+        if (!riskReportsCacheDict.Any())
         {
             return ServiceResponse<bool>.Fail("There is no alert required for submission.");
         }
@@ -264,6 +264,8 @@ public class AppService : IAppService
 
         var regionMap = _context.Regions.Where(r => regionIds.Contains(r.RegionId)).ToDictionary(r => r.Id);
         var users = _context.Users.Include(u => u.userSubscriptions).ToArray();
+        if(users == null || !users.Any())
+            return ServiceResponse<bool>.Fail("Empty reciever.");
         string subject = "Disaster alert";
         List<RiskAlert> riskAlerts = [];
         foreach (var user in users)
